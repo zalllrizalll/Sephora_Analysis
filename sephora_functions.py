@@ -40,3 +40,22 @@ def load_dataset():
 
     # Menggabungkan df_reviews dan df_product_info[cols_to_use] berdasarkan kolom 'product_id'
     df = pd.merge(df_reviews, df_product_info[cols_to_use], how='outer', on=['product_id', 'product_id'])
+
+    # Rename the columns
+    df.rename(columns={'review_text':'text', 'is_recommended':'label'},  inplace=True)
+
+    # Get value text
+    x = df.text.values
+
+    # Get value label
+    y = df.label.values
+
+    return df, x, y
+
+@st.cache()
+def train_model(x, y):
+    # Pertama, bagi data menjadi training (70%) dan sisa (30%)
+    X_train, X_temp, y_train, y_temp = train_test_split(x, y.astype(int), test_size=0.3, shuffle=True, random_state=42)
+
+    # Kemudian, bagi data sisa tersebut menjadi validation dan testing (masing-masing 50% dari data sisa)
+    X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, shuffle=True, random_state=42)
