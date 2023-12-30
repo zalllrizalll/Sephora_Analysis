@@ -59,3 +59,127 @@ def train_model(x, y):
 
     # Kemudian, bagi data sisa tersebut menjadi validation dan testing (masing-masing 50% dari data sisa)
     X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, shuffle=True, random_state=42)
+
+    # Train to Model BERT
+    tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True)
+
+    # Data Training
+    encoded_data_train = tokenizer.batch_encode_plus(
+                            X_train,
+                            add_special_tokens=True,
+                            return_attention_mask=True,
+                            padding=True,
+                            max_length=128,
+                            truncation=True,
+                            return_tensors='pt'
+                        )
+    
+    # Data Validation
+    encoded_data_val = tokenizer.batch_encode_plus(
+                            X_val,
+                            add_special_tokens=True,
+                            return_attention_mask=True,
+                            padding=True,
+                            max_length=128,
+                            truncation=True,
+                            return_tensors='pt'
+                        )
+    
+    # Data Testing
+    encoded_data_test = tokenizer.batch_encode_plus(
+                            X_test,
+                            add_special_tokens=True,
+                            return_attention_mask=True,
+                            padding=True,
+                            max_length=128,
+                            truncation=True,
+                            return_tensors='pt'
+                        )
+    
+    # Encoding Data Training
+    input_ids_train = encoded_data_train['input_ids']
+    attention_masks_train = encoded_data_train['attention_mask']
+    labels_train = torch.tensor(y_train)
+
+    # Encoding Data Validation
+    input_ids_val = encoded_data_val['input_ids']
+    attention_masks_val = encoded_data_val['attention_mask']
+    labels_val = torch.tensor(y_val)
+
+    # Encoding Data Testing
+    input_ids_test = encoded_data_test['input_ids']
+    attention_masks_test = encoded_data_test['attention_mask']
+    labels_test = torch.tensor(y_test)
+
+    # Dataset Training
+    dataset_train = TensorDataset(input_ids_train, 
+                                  attention_masks_train,
+                                  labels_train)
+
+    # Dataset Validation
+    dataset_val = TensorDataset(input_ids_val, 
+                                attention_masks_val,
+                                labels_val)
+
+    # Dataset Testing
+    dataset_test = TensorDataset(input_ids_test, 
+                                 attention_masks_test,
+                                 labels_test)
+    
+    # Load BertForSequenceClassification, the pretrained BERT model with a single 
+    # linear classification layer on top. 
+    model = BertForSequenceClassification.from_pretrained(
+            "bert-base-uncased", 
+            num_labels = 2,   
+            output_attentions = False, 
+            output_hidden_states = False, )
+
+    model = torch.nn.DataParallel(model)
+
+    batch_size = 32
+    # Train Dataloader
+    train_dataloader = DataLoader(
+        dataset_train,
+        sampler=RandomSampler(dataset_train),
+        batch_size=batch_size
+    )
+
+    # Validation Dataloader
+    validation_dataloader = DataLoader(
+        dataset_val,
+        sampler=RandomSampler(dataset_val),
+        batch_size=batch_size
+    )
+
+    # Test Dataloader
+    test_dataloader = DataLoader(
+        dataset_test,
+        sampler=RandomSampler(dataset_test),
+        batch_size=batch_size
+    )
+
+    # AdamW is an optimizer which is a Adam Optimzier with weight-decay-fix
+    optimizer = AdamW(model.parameters(),
+                    lr = 2e-5, 
+                    eps = 1e-8 
+                    )
+
+    # Number of training epochs
+    epochs = 10
+
+    # Total number of training steps is number of batches * number of epochs.
+    total_steps = len(train_dataloader) * epochs
+
+    # Create the learning rate scheduler.
+    scheduler = get_linear_schedule_with_warmup(optimizer, 
+                num_warmup_steps = 0, # Default value in run_glue.py
+                num_training_steps = total_steps)
+    
+    return model, scheduler
+
+@st.cache()
+# Function to calculate the accuracy of our predictions vs labels
+def flat_accuracy(preds, labels):
+    pred_flat = np.argmax(preds, axis=1).flatten()
+    labels_flat = labels.flatten()
+    return np.sum(pred_flat == labels_flat) / len(labels_flat)
