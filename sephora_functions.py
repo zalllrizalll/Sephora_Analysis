@@ -23,13 +23,13 @@ from wordcloud import WordCloud
 
 @st.cache_data()
 def load_dataset():
-    df_product_info = pd.read_csv("/Assets/product_info.csv")
-    df_reviews_1 = pd.read_csv("/Assets/reviews_0_250.csv",index_col = 0, dtype={'author_id':'str'})
-    df_reviews_2 = pd.read_csv("/Assets/reviews_250_500.csv",index_col = 0, dtype={'author_id':'str'})
-    df_reviews_3 = pd.read_csv("/Assets/reviews_500_750.csv",index_col = 0, dtype={'author_id':'str'})
-    df_reviews_4 = pd.read_csv("/Assets/reviews_750_1000.csv",index_col = 0, dtype={'author_id':'str'})
-    df_reviews_5 = pd.read_csv("/Assets/reviews_1000_1500.csv",index_col = 0, dtype={'author_id':'str'})
-    df_reviews_6 = pd.read_csv("/Assets/reviews_1500_end.csv",index_col = 0, dtype={'author_id':'str'})
+    df_product_info = pd.read_csv("Assets/product_info.csv")
+    df_reviews_1 = pd.read_csv("Assets/reviews_0_250.csv",index_col = 0, dtype={'author_id':'str'})
+    df_reviews_2 = pd.read_csv("Assets/reviews_250_500.csv",index_col = 0, dtype={'author_id':'str'})
+    df_reviews_3 = pd.read_csv("Assets/reviews_500_750.csv",index_col = 0, dtype={'author_id':'str'})
+    df_reviews_4 = pd.read_csv("Assets/reviews_750_1000.csv",index_col = 0, dtype={'author_id':'str'})
+    df_reviews_5 = pd.read_csv("Assets/reviews_1000_1500.csv",index_col = 0, dtype={'author_id':'str'})
+    df_reviews_6 = pd.read_csv("Assets/reviews_1500_end.csv",index_col = 0, dtype={'author_id':'str'})
 
     # Merge df reviews
     df_reviews = pd.concat([df_reviews_1,df_reviews_2,df_reviews_3,df_reviews_4,df_reviews_5,df_reviews_6],axis=0)
