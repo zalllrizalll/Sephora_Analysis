@@ -1,5 +1,5 @@
 # Import beberapa library yang dibutuhkan
-from turtle import st
+import streamlit as st
 import numpy as np # Library python yang umum digunakan untuk operasi numerik, terutama operasi array numerik multidimensi
 import pandas as pd # Library python yang digunakan untuk manipulasi dan analisis data, terutama dengan struktur data seperti DataFrames.
 from matplotlib import pyplot as plt # Library python untuk membuat visualisasi grafis. Modul 'pyplot' -> antarmuka membuat grafik dan plot
@@ -8,7 +8,7 @@ from matplotlib.ticker import NullFormatter
 import matplotlib as mpl
 from sklearn.model_selection import train_test_split
 import torch
-import torch.nn as nn
+# import torch.nn as nn
 from transformers import BertTokenizer, BertModel,BertForSequenceClassification
 from torch.utils.data import DataLoader, TensorDataset
 from transformers import  AdamW, BertConfig
@@ -19,8 +19,9 @@ import datetime
 from sklearn.metrics import accuracy_score
 import random
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from wordcloud import WordCloud
 
-@st.cache()
+@st.cache_data()
 def load_dataset():
     df_product_info = pd.read_csv("/Assets/product_info.csv")
     df_reviews_1 = pd.read_csv("/Assets/reviews_0_250.csv",index_col = 0, dtype={'author_id':'str'})
@@ -52,7 +53,7 @@ def load_dataset():
 
     return df, x, y
 
-@st.cache()
+@st.cache_data()
 def train_model(x, y):
     # Pertama, bagi data menjadi training (70%) dan sisa (30%)
     X_train, X_temp, y_train, y_temp = train_test_split(x, y.astype(int), test_size=0.3, shuffle=True, random_state=42)
@@ -134,8 +135,6 @@ def train_model(x, y):
             output_attentions = False, 
             output_hidden_states = False, )
 
-    model = torch.nn.DataParallel(model)
-
     batch_size = 32
     # Train Dataloader
     train_dataloader = DataLoader(
@@ -177,9 +176,30 @@ def train_model(x, y):
     
     return model, scheduler
 
-@st.cache()
+@st.cache_data()
 # Function to calculate the accuracy of our predictions vs labels
 def flat_accuracy(preds, labels):
     pred_flat = np.argmax(preds, axis=1).flatten()
     labels_flat = labels.flatten()
     return np.sum(pred_flat == labels_flat) / len(labels_flat)
+
+@st.cache_data()
+def analysis_review(sentence):
+    if(sentence == 1):
+        # Positive Review
+        wordcloud = WordCloud(max_font_size = 160, margin=0, background_color = "white", colormap="Greens").generate(sentence)
+        plt.figure(figsize=[10,10])
+        plt.imshow(wordcloud, interpolation='bilinear')
+        plt.axis("off")
+        plt.margins(x=0, y=0)
+        plt.title("Positive Reviews Word Cloud")
+        plt.show()
+    else:
+        # Negative Review
+        wordcloud = WordCloud(max_font_size = 160, margin=0, background_color = "white", colormap="Reds").generate(sentence)
+        plt.figure(figsize=[10,10])
+        plt.imshow(wordcloud, interpolation='bilinear')
+        plt.axis("off")
+        plt.margins(x=0, y=0)
+        plt.title("Negative Reviews Word Cloud")
+        plt.show()
