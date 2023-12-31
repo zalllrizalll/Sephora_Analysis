@@ -2,7 +2,7 @@ from seaborn import load_dataset
 import streamlit as st
 from streamlit_option_menu import option_menu
 from sephora_functions import load_dataset
-from Pages import overview, sentiment_analysis, topic_modelling, account
+from Tabs import overview, sentiment_analysis, topic_modelling, account
 
 Pages = {
     "Overview" : overview,
@@ -23,5 +23,7 @@ df, x, y = load_dataset()
 # Call app function
 if selected in ["Sentiment Analysis", "Topic Modelling"]:
     Pages[selected].app(df, x, y)
+elif selected in ["Overview"]:
+    Pages[selected].app(df)
 else:
     Pages[selected].app()
