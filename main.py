@@ -12,7 +12,7 @@ Pages = {
 
 # Option Menu
 with st.sidebar:
-    selected = option_menu("Skincare Review Sentiment ", list(Pages.keys()), 
+    selected = option_menu("Skincare Review Sentiment", list(Pages.keys()), 
         icons=['eye', 'emoji-smile', 'file-earmark-text', 'person-circle'], menu_icon=" ", default_index=0)
     selected
 
