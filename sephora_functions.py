@@ -21,7 +21,7 @@ import random
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from wordcloud import WordCloud
 
-@st.cache_data()
+@st.cache_data
 def load_dataset():
     df_product_info = pd.read_csv("Assets/product_info.csv")
     df_reviews_1 = pd.read_csv("Assets/reviews_0_250.csv",index_col = 0, dtype={'author_id':'str'})
@@ -53,7 +53,7 @@ def load_dataset():
 
     return df, x, y
 
-@st.cache_data()
+@st.cache_data
 def train_model(x, y):
     # Pertama, bagi data menjadi training (70%) dan sisa (30%)
     X_train, X_temp, y_train, y_temp = train_test_split(x, y.astype(int), test_size=0.3, shuffle=True, random_state=42)
@@ -176,14 +176,14 @@ def train_model(x, y):
     
     return model, scheduler
 
-@st.cache_data()
+@st.cache_data
 # Function to calculate the accuracy of our predictions vs labels
 def flat_accuracy(preds, labels):
     pred_flat = np.argmax(preds, axis=1).flatten()
     labels_flat = labels.flatten()
     return np.sum(pred_flat == labels_flat) / len(labels_flat)
 
-@st.cache_data()
+@st.cache_data
 def analysis_review(sentence):
     if(sentence == 1):
         # Positive Review
