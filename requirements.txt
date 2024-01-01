@@ -1,1 +1,6 @@
+pip install streamlit
 pip install streamlit_option_menu
+pip install wordcloud
+pip install seaborn
+pip install matplotlib
+pip install transformers
