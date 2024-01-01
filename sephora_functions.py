@@ -52,6 +52,49 @@ def load_dataset():
     y = df.label.values
 
     return df, x, y
+@st.cache_data
+def preproses(df):
+    missing = []
+    unique = []
+    types = []
+    variables = []
+    count = []
+
+    for item in df.columns:
+        variables.append(item)
+        missing.append(df[item].isnull().sum())
+        unique.append(df[item].nunique())
+        types.append(df[item].dtypes)
+        count.append(len(df[item]))
+
+    output = pd.DataFrame({
+        'variable': variables,
+        'dtype': types,
+        'count': count,
+        'unique': unique,
+        'missing': missing,
+    })
+
+    df_info = output.sort_values("missing", ascending=False).reset_index(drop=True)
+
+    # Specify columns to drop
+    cols_to_drop = """variation_desc
+    sale_price_usd
+    value_price_usd
+    child_max_price
+    child_min_price
+    review_title"""
+
+    # Remove leading space in each column name
+    cols_list = [col.strip() for col in cols_to_drop.split("\n")]
+
+    # Drop the specified columns
+    df.drop(columns=cols_list, axis=1, inplace=True)
+
+    # Drop rows with missing values
+    df.dropna(axis=0, inplace=True)
+
+    return df
 
 @st.cache_data
 def train_model(x, y):
