@@ -5,6 +5,6 @@ from wordcloud import WordCloud
 from sephora_functions import train_model
 
 def app(df, x, y):
-    st.title("Topic Modelling")
+    st.title("Prediction")
 
     
