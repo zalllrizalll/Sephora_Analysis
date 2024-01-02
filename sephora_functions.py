@@ -53,7 +53,7 @@ def load_dataset():
 
     return df, x, y
 @st.cache_data
-def preproses(df):
+def preprocessing_data(df):
     missing = []
     unique = []
     types = []
