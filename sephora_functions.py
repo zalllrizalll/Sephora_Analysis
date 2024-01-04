@@ -16,6 +16,8 @@ from torch.utils.data import DataLoader, RandomSampler
 from transformers import get_linear_schedule_with_warmup
 import time
 import datetime
+import io
+import base64
 from sklearn.metrics import accuracy_score
 import random
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
@@ -52,6 +54,51 @@ def load_dataset():
     y = df.label.values
 
     return df, x, y
+
+@st.cache_data
+def hundformatter(x, pos):
+    return str(round(x / 1e4, 1))
+
+@st.cache_data
+def create_feedback_plot_streamlit(df):
+    # Convert 'submission_time' to datetime and extract year
+    df['submission_time'] = pd.to_datetime(df['submission_time'])
+    df['year'] = df['submission_time'].dt.year
+
+    # Create a Streamlit app
+    fig, (ax1) = plt.subplots(nrows=1, ncols=1, figsize=(15, 8))
+
+    total_feedback = df.groupby('year').sum(numeric_only=True)['total_feedback_count'].reset_index()
+
+    sns.pointplot(data=total_feedback, x='year', y='total_feedback_count', color="blue", label="Total all feedback", ax=ax1)
+
+    total_pos_feedback = df.groupby('year').sum(numeric_only=True)['total_pos_feedback_count'].reset_index()
+    sns.pointplot(data=total_pos_feedback, x='year', y='total_pos_feedback_count', color="green", label="Total Positive Feedback", ax=ax1)
+
+    total_neg_feedback = df.groupby('year').sum(numeric_only=True)['total_neg_feedback_count'].reset_index()
+    sns.pointplot(data=total_neg_feedback, x='year', y='total_neg_feedback_count', color="red", label="Total Negative Feedback", ax=ax1)
+
+    ax1.yaxis.set_major_formatter(hundformatter)
+    ax1.set_ylabel("Total feedback in Thousands")
+    ax1.set_xlabel("Years")
+    ax1.legend()
+
+    # Display the plot in Streamlit
+    st.pyplot(fig)
+
+@st.cache_data
+def plot_helpfulness_vs_recommendation(df):
+    # Create a Streamlit figure
+    fig, ax = plt.subplots()
+    
+    colors = {'0.0': 'red', '1.0': 'green'}
+    
+    # Use Seaborn's barplot within the figure
+    sns.barplot(data=df, y='helpfulness', x='label', palette=colors, ax=ax)
+    
+    # Display the plot in Streamlit
+    st.pyplot(fig)
+
 @st.cache_data
 def preprocessing_data(df):
     missing = []
@@ -227,22 +274,42 @@ def flat_accuracy(preds, labels):
     return np.sum(pred_flat == labels_flat) / len(labels_flat)
 
 @st.cache_data
-def analysis_review(sentence):
-    if(sentence == 1):
+def generate_wordcloud(text, sentiment_label):
+    if sentiment_label == 1:
         # Positive Review
-        wordcloud = WordCloud(max_font_size = 160, margin=0, background_color = "white", colormap="Greens").generate(sentence)
-        plt.figure(figsize=[10,10])
-        plt.imshow(wordcloud, interpolation='bilinear')
-        plt.axis("off")
-        plt.margins(x=0, y=0)
-        plt.title("Positive Reviews Word Cloud")
-        plt.show()
-    else:
+        color_map = "Greens"
+    elif sentiment_label == 0:
         # Negative Review
-        wordcloud = WordCloud(max_font_size = 160, margin=0, background_color = "white", colormap="Reds").generate(sentence)
-        plt.figure(figsize=[10,10])
-        plt.imshow(wordcloud, interpolation='bilinear')
-        plt.axis("off")
-        plt.margins(x=0, y=0)
-        plt.title("Negative Reviews Word Cloud")
-        plt.show()
+        color_map = "Reds"
+    else:
+        st.error("Invalid sentiment label. Use 0 for negative or 1 for positive.")
+        return None
+
+    # Convert each item to a string, handling potential float values
+    text = [str(item) for item in text]
+
+    wordcloud = WordCloud(
+        max_words=25,          # Adjust as needed
+        max_font_size=80,       # Adjust as needed
+        margin=0,
+        background_color="darkgrey",
+        colormap=color_map
+    ).generate(' '.join(text))
+
+    fig, ax = plt.subplots()
+    plt.figure(figsize=[10, 10])
+    plt.imshow(wordcloud, interpolation='bilinear')
+    plt.axis("off")
+    plt.margins(x=0, y=0)
+
+    img_bytes = io.BytesIO()
+    plt.savefig(img_bytes, format='png')
+    img_bytes.seek(0)
+
+    # Encode the bytes as base64 to make it serializable
+    img_str = base64.b64encode(img_bytes.read()).decode('utf-8')
+
+    # Close the Matplotlib figure to free up resources
+    plt.close()
+
+    return img_str
