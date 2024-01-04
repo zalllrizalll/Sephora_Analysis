@@ -1,9 +1,14 @@
 import streamlit as st
+import io
+import base64
+from sephora_functions import train_model,generate_wordcloud,preprocessing_data,create_feedback_plot_streamlit,plot_helpfulness_vs_recommendation
+
 
 def app(df, x, y):
     st.title("Sentiment Analysis")
 
     tab1, tab2, = st.tabs(["Vizualizations", "Review by Sentiment"])
+   
 
     with tab1:
 
@@ -15,13 +20,14 @@ def app(df, x, y):
             inner_row1 = st.container()
             with inner_row1:
                 st.text("Total Feedback")
-                st.image("https://static.streamlit.io/examples/cat.jpg", width=200)
+                create_feedback_plot_streamlit(df)
 
             # Inner row 2 within col1
             inner_row2 = st.container()
             with inner_row2:
                 st.text("Total Score")
-                st.image("https://static.streamlit.io/examples/cat.jpg", width=200)
+                plot_helpfulness_vs_recommendation(df)
+                
             
         # Add content to the second column
         with col2:
@@ -30,18 +36,30 @@ def app(df, x, y):
             st.write('<style>div.st-bf{flex-direction:column;} div.st-ag{font-weight:bold;padding-left:2px;}</style>', unsafe_allow_html=True)
 
             choose=st.radio("Choose Wordcloud :",("Positive Word", "Negative Word"))
+
+            # Perform word cloud analysis
             # Display content based on the selected option
             if choose == "Positive Word":
-                show_option_1_content()
+                wordcloud_figure_positive = generate_wordcloud(df['text'].tolist(), sentiment_label=1)
+                if wordcloud_figure_positive is not None:
+                     st.image(io.BytesIO(base64.b64decode(wordcloud_figure_positive)), use_column_width=True)
             elif choose == "Negative Word":
-                show_option_2_content()
-
+                wordcloud_figure_negative = generate_wordcloud(df['text'].tolist(), sentiment_label=0)
+                if wordcloud_figure_negative is not None:
+                     st.image(io.BytesIO(base64.b64decode(wordcloud_figure_negative)), use_column_width=True)
     with tab2:
-        st.header("A dog")
-        st.image("https://static.streamlit.io/examples/dog.jpg", width=200)
+        review_label = st.selectbox("Select Review Type", ['positive', 'negative'])
 
-def show_option_1_content():
-    st.image("https://static.streamlit.io/examples/cat.jpg", width=200)
+        label_mapping = {'positive': 1, 'negative': 0}
 
-def show_option_2_content():
-    st.image("https://static.streamlit.io/examples/dog.jpg", width=200)
+        # Get the corresponding label value
+        selected_label = label_mapping.get(review_label)
+
+        selected_reviews = df[df['label'] == selected_label]['text']
+
+        if not selected_reviews.empty:
+            selected_review = selected_reviews.iloc[0]
+            # Use selected_review as needed
+            st.write(selected_review)
+        else:
+            st.warning(f"No reviews found for the {review_label} label.")
