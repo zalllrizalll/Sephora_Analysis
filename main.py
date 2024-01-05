@@ -2,6 +2,7 @@ import streamlit as st
 from streamlit_option_menu import option_menu
 from sephora_functions import load_dataset
 from Tabs import about, help, overview, prediction, sentiment_analysis
+from transformers import BertTokenizer,BertForSequenceClassification
 
 Pages = {
     "Overview" : overview,
@@ -20,8 +21,9 @@ with st.sidebar:
 # Load Dataset
 df, x, y = load_dataset()
 
+
 # Call app function
-if selected in ["Sentiment Analysis", "Prediction"]:
+if selected in ["Sentiment Analysis","Prediction"]:
     Pages[selected].app(df, x, y)
 else:
     Pages[selected].app()
