@@ -1,7 +1,7 @@
 import streamlit as st
 import io
 import base64
-from sephora_functions import train_model,generate_wordcloud,preprocessing_data,create_feedback_plot_streamlit,plot_helpfulness_vs_recommendation
+from sephora_functions import generate_wordcloud,preprocessing_data,create_feedback_plot_streamlit,plot_helpfulness_vs_recommendation
 
 
 def app(df, x, y):
@@ -53,7 +53,7 @@ def app(df, x, y):
         label_mapping = {'positive': 1, 'negative': 0}
 
         # Get the corresponding label value
-        selected_label = label_mapping.get(review_label)
+        selected_label = label_mapping.get(review_label) if review_label is not None else None
 
         selected_reviews = df[df['label'] == selected_label]['text']
 

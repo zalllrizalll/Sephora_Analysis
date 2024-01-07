@@ -1,6 +1,6 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
-from sephora_functions import load_dataset
+from sephora_functions import load_dataset,preprocessing_data
 from Tabs import about, help, overview, prediction, sentiment_analysis
 from transformers import BertTokenizer,BertForSequenceClassification
 
@@ -20,6 +20,7 @@ with st.sidebar:
 
 # Load Dataset
 df, x, y = load_dataset()
+df=preprocessing_data(df)
 
 
 # Call app function

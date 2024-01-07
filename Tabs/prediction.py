@@ -1,27 +1,22 @@
 import streamlit as st
+import torch
 from transformers import BertTokenizer,BertForSequenceClassification
-from sephora_functions import train_and_predict_sentiment
+from sephora_functions import perform_sentiment_analysis
+from sklearn.model_selection import train_test_split
+from torch.utils.data import DataLoader, TensorDataset
+import pandas as pd
 
-model_name = "bert-base-uncased"
-tokenizer = BertTokenizer.from_pretrained(model_name)
-model = BertForSequenceClassification.from_pretrained(model_name)
 
 def app(df, x, y):
-    # User input for review
-    review = st.text_area("Enter your review:")
+    
+    # Prediction section
+    st.header("Predict Sentiment")
 
-    x_train = df['text']
-    y_train = df['label']
+    review_text = st.text_area("Enter a review:")
 
-    if st.button("Predict Sentiment"):
-        if review:
-            predictions = train_and_predict_sentiment(review, x_train, y_train, tokenizer, model)
-            # Display the result
-            if predictions[0] == 1:
-                sentiment = "Positive"
-            else:
-                sentiment = "Negative"
-                
-            st.success(f"The sentiment of the review is {sentiment}.")
+    if st.button("Submit"):
+        if review_text:
+            sentiment = perform_sentiment_analysis(review_text)
+            st.write(f"Sentiment: {sentiment}")
         else:
-            st.warning("Please enter a review before predicting.")
+            st.warning("Please enter a review.")

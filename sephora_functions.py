@@ -9,6 +9,7 @@ import matplotlib as mpl
 from sklearn.model_selection import train_test_split
 import torch
 # import torch.nn as nn
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from transformers import BertTokenizer, BertModel,BertForSequenceClassification
 from torch.utils.data import DataLoader, TensorDataset
 from transformers import  AdamW, BertConfig
@@ -24,6 +25,7 @@ from sklearn.metrics import accuracy_score
 import random
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from wordcloud import WordCloud
+
 
 @st.cache_data
 def load_dataset():
@@ -93,10 +95,13 @@ def plot_helpfulness_vs_recommendation(df):
     # Create a Streamlit figure
     fig, ax = plt.subplots()
     
-    colors = {'0.0': 'red', '1.0': 'green'}
-    
-    # Use Seaborn's barplot within the figure
-    sns.barplot(data=df, y='helpfulness', x='label', palette=colors, ax=ax)
+    colors = {'positive': 'green', 'negative': 'red'}
+
+    # Convert the dictionary to a Seaborn palette
+    custom_palette = sns.color_palette(list(colors.values()))
+
+    # Use the custom palette in sns.barplot
+    sns.barplot(data=df, y='helpfulness', x='label', palette=custom_palette, ax=ax)
     
     # Display the plot in Streamlit
     st.pyplot(fig)
@@ -146,274 +151,26 @@ def preprocessing_data(df):
     return df
 
 @st.cache_data
-def train_model(x, y):
-    # Check for NaN or inf values in labels
-    if not pd.Series(y).isnull().all() and not np.isfinite(y).all():
-        # Handle or remove NaN or inf values in labels
-        y = pd.Series(y).dropna().astype(int).values
+def perform_sentiment_analysis(text):
+    tokenizer = AutoTokenizer.from_pretrained("distilbert-base-uncased-finetuned-sst-2-english")
+    model = AutoModelForSequenceClassification.from_pretrained("distilbert-base-uncased-finetuned-sst-2-english")
 
-    # Trim x to match the length of y
-    x = x[:len(y)]
+    # Encode the text using the tokenizer
+    inputs = tokenizer(text, padding=True, truncation=True, return_tensors='pt')  # 'pt' for PyTorch tensors
 
-    if len(x) != len(y):
-        st.write(f"Length of x: {len(x)}, Length of y: {len(y)}")
-        raise ValueError("Lengths of x and y must be the same.")
-
-    # Create a DataFrame with 'text' and 'label' columns
-    df = pd.DataFrame({'text': x, 'label': y})
-
-    # Count the number of positive and negative instances in the original DataFrame
-    pos_count = df['label'].sum()  # Assuming label 1 represents positive instances
-    neg_count = len(df) - pos_count
-
-    # Determine the minimum count for sampling
-    min_count = min(pos_count, neg_count)
-
-    # Sample 20,000 rows for both positive and negative labels
-    pos_sampled = df[df['label'] == 1].sample(20000, replace=True)
-    neg_sampled = df[df['label'] == 0].sample(20000, replace=True)
-
-    # Concatenate pos and neg samples
-    df_sampled = pd.concat([pos_sampled, neg_sampled], axis=0)
-
-    # Extract the labels
-    y = df_sampled['label'].astype(int).values
-
-    if len(df_sampled) != len(y):
-        raise ValueError("Lengths of x and y must be the same.")
-
-    # Convert 'text' column to a list
-    X = df_sampled['text'].tolist()
-
-    # Split the data into training, validation, and test sets
-    X_train, X_temp, y_train, y_temp = train_test_split(X, df_sampled['label'].astype(int), test_size=0.3, shuffle=True, random_state=42)
-
-    X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, shuffle=True, random_state=42)
- 
-    # Convert X_train to strings
-    x_train = [str(item) for item in X_train]
-
-    # Train to Model BERT
-    tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True)
-
-    # Data Training
-    encoded_data_train = tokenizer.batch_encode_plus(
-                            X_train,
-                            add_special_tokens=True,
-                            return_attention_mask=True,
-                            padding=True,
-                            max_length=128,
-                            truncation=True,
-                            return_tensors='pt'
-                        )
-    
-    # Data Validation
-    encoded_data_val = tokenizer.batch_encode_plus(
-                            X_val,
-                            add_special_tokens=True,
-                            return_attention_mask=True,
-                            padding=True,
-                            max_length=128,
-                            truncation=True,
-                            return_tensors='pt'
-                        )
-    
-    # Data Testing
-    encoded_data_test = tokenizer.batch_encode_plus(
-                            X_test,
-                            add_special_tokens=True,
-                            return_attention_mask=True,
-                            padding=True,
-                            max_length=128,
-                            truncation=True,
-                            return_tensors='pt'
-                        )
-    
-    # Encoding Data Training
-    input_ids_train = encoded_data_train['input_ids']
-    attention_masks_train = encoded_data_train['attention_mask']
-    labels_train = torch.tensor(y_train)
-
-    # Encoding Data Validation
-    input_ids_val = encoded_data_val['input_ids']
-    attention_masks_val = encoded_data_val['attention_mask']
-    labels_val = torch.tensor(y_val)
-
-    # Encoding Data Testing
-    input_ids_test = encoded_data_test['input_ids']
-    attention_masks_test = encoded_data_test['attention_mask']
-    labels_test = torch.tensor(y_test)
-
-    # Dataset Training
-    dataset_train = TensorDataset(input_ids_train, 
-                                  attention_masks_train,
-                                  labels_train)
-
-    # Dataset Validation
-    dataset_val = TensorDataset(input_ids_val, 
-                                attention_masks_val,
-                                labels_val)
-
-    # Dataset Testing
-    dataset_test = TensorDataset(input_ids_test, 
-                                 attention_masks_test,
-                                 labels_test)
-    
-    # Load BertForSequenceClassification, the pretrained BERT model with a single 
-    # linear classification layer on top. 
-    model = BertForSequenceClassification.from_pretrained(
-            "bert-base-uncased", 
-            num_labels = 2,   
-            output_attentions = False, 
-            output_hidden_states = False, )
-
-    batch_size = 32
-    # Train Dataloader
-    train_dataloader = DataLoader(
-        dataset_train,
-        sampler=RandomSampler(dataset_train),
-        batch_size=batch_size
-    )
-
-    # Validation Dataloader
-    validation_dataloader = DataLoader(
-        dataset_val,
-        sampler=RandomSampler(dataset_val),
-        batch_size=batch_size
-    )
-
-    # Test Dataloader
-    test_dataloader = DataLoader(
-        dataset_test,
-        sampler=RandomSampler(dataset_test),
-        batch_size=batch_size
-    )
-
-    # AdamW is an optimizer which is a Adam Optimzier with weight-decay-fix
-    optimizer = AdamW(model.parameters(),
-                    lr = 2e-5, 
-                    eps = 1e-8 
-                    )
-
-    # Number of training epochs
-    epochs = 10
-
-    # Total number of training steps is number of batches * number of epochs.
-    total_steps = len(train_dataloader) * epochs
-
-    # Create the learning rate scheduler.
-    scheduler = get_linear_schedule_with_warmup(optimizer, 
-                num_warmup_steps = 0, # Default value in run_glue.py
-                num_training_steps = total_steps)
-    
-    return X_train, X_val, X_test, y_train, y_val, y_test
-
-@st.cache(hash_funcs={AddedToken: lambda x: 0})
-def train_and_predict_sentiment(review, x_train, y_train, tokenizer, model):
-  # Check if y_train is not null and contains finite values
-    if not pd.Series(y_train).isnull().all() and not np.isfinite(y_train).all():
-        # Handle or remove NaN or inf values in labels
-        y_train = pd.Series(y_train).dropna().astype(int).values
-
-    # Trim x_train to match the length of y_train
-    x_train = x_train[:len(y_train)]
-
-    if len(x_train) != len(y_train):
-        st.write(f"Length of x_train: {len(x_train)}, Length of y_train: {len(y_train)}")
-        raise ValueError("Lengths of x_train and y_train must be the same.")
-
-    # Create a DataFrame with 'text' and 'label' columns
-    df_train = pd.DataFrame({'text': x_train, 'label': y_train})
-
-    # Count the number of positive and negative instances in the original DataFrame
-    pos_count = df_train['label'].sum()  # Assuming label 1 represents positive instances
-    neg_count = len(df_train) - pos_count
-
-    # Determine the minimum count for sampling
-    min_count = min(pos_count, neg_count)
-
-    # Sample 20,000 rows for both positive and negative labels
-    pos_sampled = df_train[df_train['label'] == 1].sample(min_count, replace=True)
-    neg_sampled = df_train[df_train['label'] == 0].sample(min_count, replace=True)
-
-    # Convert the 'label' column to integers during sampling
-    pos_sampled['label'] = pos_sampled['label'].astype(int)
-    neg_sampled['label'] = neg_sampled['label'].astype(int)
-
-    # Concatenate pos and neg samples
-    df_sampled = pd.concat([pos_sampled, neg_sampled], axis=0)
-
-    # Extract the labels
-    y_train_sampled = df_sampled['label'].astype(int).values
-
-    if len(df_sampled) != len(y_train_sampled):
-        raise ValueError("Lengths of x_train and y_train_sampled must be the same.")
-
-    # Convert 'text' column to a list
-    x_train_sampled = df_sampled['text'].tolist()
-    x_train_final = df_sampled['text'].tolist()
-
-    # Split the data into training, validation, and test sets (adjust as needed)
-    x_train_final, x_temp, y_train_final, y_temp = train_test_split(
-        x_train_sampled, y_train_sampled, test_size=0.3, shuffle=True, random_state=42
-    )
-
-    # Encode training data
-    encoded_data_train = tokenizer.batch_encode_plus(
-        x_train_final,
-        add_special_tokens=True,
-        return_attention_mask=True,
-        padding=True,
-        max_length=128,
-        truncation=True,
-        return_tensors='pt'
-    )
-
-    # Extract input_ids, attention_masks
-    input_ids_train = encoded_data_train['input_ids']
-    attention_masks_train = encoded_data_train['attention_mask']
-
-    # Assuming you have labels in y_train_final, adjust this part based on your data
-    labels = torch.tensor(y_train_final).long()
-
-    # Training the model (replace this with your actual training code)
-    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-5)
-    loss_fn = torch.nn.CrossEntropyLoss()
-
-    for epoch in range(3):  # Replace 3 with your desired number of epochs
-        model.train()
-        optimizer.zero_grad()
-        logits = model(input_ids_train, attention_mask=attention_masks_train).logits
-        loss = loss_fn(logits, labels)
-        loss.backward()
-        optimizer.step()
-
-    # Encode test data
-    encoded_data_test = tokenizer.batch_encode_plus(
-        [review],
-        add_special_tokens=True,
-        return_attention_mask=True,
-        padding=True,
-        max_length=128,
-        truncation=True,
-        return_tensors='pt'
-    )
-
-    # Extract input_ids, attention_masks
-    input_ids_test = encoded_data_test['input_ids']
-    attention_masks_test = encoded_data_test['attention_mask']
-
-    # Make predictions
+    # Use torch.no_grad() to disable gradient computation during inference
     with torch.no_grad():
-        logits = model(input_ids_test, attention_mask=attention_masks_test).logits
+        outputs = model(**inputs)
+    
+    # Get the logits and predicted label
+    logits = outputs.logits
+    predicted_label = torch.argmax(logits, dim=1).item()
 
-    # Apply softmax to get probabilities
-    probs = softmax(logits, dim=1)
+    # Convert the predicted label to sentiment
+    sentiment = 'Positive' if predicted_label == 1 else 'Negative'
+    
+    return sentiment
 
-    # Predicted labels
-    predictions = torch.argmax(probs, dim=1).numpy()
-
-    return predictions
 @st.cache_data
 # Function to calculate the accuracy of our predictions vs labels
 def flat_accuracy(preds, labels):
@@ -425,7 +182,7 @@ def flat_accuracy(preds, labels):
 def generate_wordcloud(text, sentiment_label):
     if sentiment_label == 1:
         # Positive Review
-        color_map = "Greens"
+        color_map = "Blues"
     elif sentiment_label == 0:
         # Negative Review
         color_map = "Reds"
@@ -437,15 +194,15 @@ def generate_wordcloud(text, sentiment_label):
     text = [str(item) for item in text]
 
     wordcloud = WordCloud(
-        max_words=25,          # Adjust as needed
+        max_words=50,          # Adjust as needed
         max_font_size=80,       # Adjust as needed
         margin=0,
-        background_color="darkgrey",
+        background_color="white",
         colormap=color_map
     ).generate(' '.join(text))
 
     fig, ax = plt.subplots()
-    plt.figure(figsize=[10, 10])
+    plt.figure(figsize=(25, 25))
     plt.imshow(wordcloud, interpolation='bilinear')
     plt.axis("off")
     plt.margins(x=0, y=0)
