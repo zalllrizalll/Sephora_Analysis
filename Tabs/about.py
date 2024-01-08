@@ -3,6 +3,8 @@ import streamlit as st
 def app():
     st.title("About Us")
 
+    info_brand = "https://www.sephora.co.id/"
+    contact = "https://www.sephora.co.id/contact-us"
     st.markdown("""
         Sephora adalah destinasi utama Anda untuk eksplorasi kecantikan tanpa batas. Sejak didirikan pada tahun 1970, kami telah menjadi destinasi terpercaya bagi para pecinta kecantikan yang mencari inovasi terbaru, merek terkemuka, dan pengalaman berbelanja yang tak terlupakan.
     """)
@@ -20,8 +22,8 @@ def app():
     """)
 
     st.markdown("""
-        Jika Anda memiliki pertanyaan, umpan balik, atau ingin berbagi pengalaman Anda dengan kami, tim layanan pelanggan kami siap membantu. Kunjungi halaman Hubungi Kami untuk informasi lebih lanjut.
-    """)
+        Jika Anda memiliki pertanyaan, umpan balik, atau ingin berbagi pengalaman Anda dengan kami, tim layanan pelanggan kami siap membantu. Kunjungi halaman [info@sephora.co.id](%s) untuk informasi lebih lanjut.
+    """ % info_brand)
 
     st.markdown("""
         Terima kasih telah memilih Sephora sebagai mitra kecantikan Anda. Bersama-sama, mari jelajahi kecantikan tanpa batas!
@@ -37,8 +39,7 @@ def app():
     """)
 
     st.subheader("Customer Service")
-    url = "https://www.sephora.co.id/contact-us"
-    st.markdown("Contact : [info@sephora.co.id](%s)" % url)
+    st.markdown("Contact : [contactus@sephora.co.id](%s)" % contact)
     st.markdown("Telephone : +62 24 86041904")
 
     st.subheader("Social Media")
