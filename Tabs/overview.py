@@ -14,5 +14,5 @@ def app():
 
     st.markdown("""
         Dengan menggunakan dataset skincare review dari Kaggle yang berisi review produk perawatan kulit, proyek ini bertujuan untuk melakukan analisis sentimen terhadap produk skincare yang diproduksi oleh perusahaan dengan brand Sephora. 
-        Data ini akan dianalisis menggunakan pendekatan CNN Layer untuk analisis sentimen dan dengan pemodelan menggunakan Bert.
+        Data ini akan dianalisis menggunakan pendekatan CNN Layer untuk analisis sentimen dan dengan pemodelan menggunakan BERT.
     """)

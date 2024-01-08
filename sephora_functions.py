@@ -95,7 +95,7 @@ def plot_helpfulness_vs_recommendation(df):
     # Create a Streamlit figure
     fig, ax = plt.subplots()
     
-    colors = {'positive': 'green', 'negative': 'red'}
+    colors = {'negative': 'red', 'positive': 'green'}
 
     # Convert the dictionary to a Seaborn palette
     custom_palette = sns.color_palette(list(colors.values()))

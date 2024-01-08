@@ -48,7 +48,7 @@ def app(df, x, y):
                 if wordcloud_figure_negative is not None:
                      st.image(io.BytesIO(base64.b64decode(wordcloud_figure_negative)), use_column_width=True)
     with tab2:
-        review_label = st.selectbox("Select Review Type", ['positive', 'negative'])
+        review_label = st.selectbox("Select review type", ['Choose your choice','positive', 'negative'])
 
         label_mapping = {'positive': 1, 'negative': 0}
 
@@ -60,6 +60,6 @@ def app(df, x, y):
         if not selected_reviews.empty:
             selected_review = selected_reviews.iloc[0]
             # Use selected_review as needed
-            st.write(selected_review)
+            st.info(selected_review)
         else:
-            st.warning(f"No reviews found for the {review_label} label.") 
+            st.warning("Please choose your choice label!") 

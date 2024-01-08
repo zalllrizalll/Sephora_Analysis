@@ -16,7 +16,6 @@ Pages = {
 with st.sidebar:
     selected = option_menu("Sephora Analysis", list(Pages.keys()), 
         icons=['eye', 'emoji-smile', 'file-earmark-text', 'question-circle', 'info-circle'], menu_icon=" ", default_index=0)
-    selected
 
 # Load Dataset
 df, x, y = load_dataset()

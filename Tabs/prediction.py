@@ -17,6 +17,9 @@ def app(df, x, y):
     if st.button("Submit"):
         if review_text:
             sentiment = perform_sentiment_analysis(review_text)
-            st.write(f"Sentiment: {sentiment}")
+            if (sentiment == 'Positive'):
+                st.success(f"{sentiment} Review")
+            else:
+                st.error(f"{sentiment} Review")
         else:
             st.warning("Please enter a review.")
