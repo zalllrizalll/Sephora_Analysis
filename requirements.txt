@@ -73,9 +73,9 @@ threadpoolctl==3.2.0
 tokenizers==0.15.0
 toml==0.10.2
 toolz==0.12.0
-torch==2.3.0.dev20240105+cu121
-torchaudio==2.2.0.dev20240105+cu121
-torchvision==0.18.0.dev20240105+cu121
+torch
+torchaudio
+torchvision
 tornado==6.4
 tqdm==4.66.1
 traitlets==5.14.1
