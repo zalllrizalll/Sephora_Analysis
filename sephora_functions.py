@@ -182,7 +182,7 @@ def flat_accuracy(preds, labels):
 def generate_wordcloud(text, sentiment_label):
     if sentiment_label == 1:
         # Positive Review
-        color_map = "Blues"
+        color_map = "Greens"
     elif sentiment_label == 0:
         # Negative Review
         color_map = "Reds"

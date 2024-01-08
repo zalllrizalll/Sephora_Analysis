@@ -39,14 +39,14 @@ def app():
     """)
 
     st.subheader("Customer Service")
-    st.markdown("Contact : [contactus@sephora.co.id](%s)" % contact)
-    st.markdown("Telephone : +62 24 86041904")
+    st.markdown("Contact: [contactus@sephora.co.id](%s)" % contact)
+    st.markdown("Telephone: +62 24 86041904")
 
     st.subheader("Social Media")
     facebook = "https://www.facebook.com/sephoraindonesia"
     instagram = "https://www.instagram.com/sephoraidn"
     twitter = "https://www.twitter.com/Sephora"
 
-    st.markdown("Facebook : [facebook@sephora.co.id](%s)" % facebook)
-    st.markdown("Instagram : [instagram@sephora.co.id](%s)" % instagram)
-    st.markdown("Twitter : [twitter@sephora.co.id](%s)" % twitter)
+    st.markdown("Facebook: [facebook@sephora.co.id](%s)" % facebook)
+    st.markdown("Instagram: [instagram@sephora.co.id](%s)" % instagram)
+    st.markdown("Twitter: [twitter@sephora.co.id](%s)" % twitter)
