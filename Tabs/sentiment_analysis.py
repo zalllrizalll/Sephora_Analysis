@@ -3,13 +3,11 @@ import io
 import base64
 from sephora_functions import generate_wordcloud,preprocessing_data,create_feedback_plot_streamlit,plot_helpfulness_vs_recommendation
 
-
 def app(df, x, y):
     st.title("Sentiment Analysis")
 
     tab1, tab2, = st.tabs(["Vizualizations", "Review by Sentiment"])
    
-
     with tab1:
 
         col1, col2 = st.columns(2)
@@ -28,7 +26,6 @@ def app(df, x, y):
                 st.text("Total Score")
                 plot_helpfulness_vs_recommendation(df)
                 
-            
         # Add content to the second column
         with col2:
             st.write('<style>div.row-widget.stRadio > div{flex-direction:row;justify-content: center;} </style>', unsafe_allow_html=True)

@@ -27,7 +27,6 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 from wordcloud import WordCloud
 import gdown
 
-
 @st.cache_data
 def load_dataset():
     df_product_info = pd.read_csv("Assets/product_info.csv")

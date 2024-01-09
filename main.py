@@ -4,8 +4,6 @@ from sephora_functions import load_dataset,preprocessing_data
 from Tabs import about, help, overview, prediction, sentiment_analysis
 from transformers import BertTokenizer,BertForSequenceClassification
 
-
-
 Pages = {
     "Overview" : overview,
     "Sentiment Analysis" : sentiment_analysis,
@@ -22,7 +20,6 @@ with st.sidebar:
 # Load Dataset
 df, x, y = load_dataset() # type: ignore
 df=preprocessing_data(df)
-
 
 # Call app function
 if selected in ["Sentiment Analysis","Prediction"]:
