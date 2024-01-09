@@ -25,17 +25,43 @@ from sklearn.metrics import accuracy_score
 import random
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from wordcloud import WordCloud
+import gdown
 
 
 @st.cache_data
 def load_dataset():
-    df_product_info = pd.read_csv("Assets/product_info.csv")
-    df_reviews_1 = pd.read_csv("Assets/reviews_0_250.csv",index_col = 0, dtype={'author_id':'str'})
-    df_reviews_2 = pd.read_csv("Assets/reviews_250_500.csv",index_col = 0, dtype={'author_id':'str'})
-    df_reviews_3 = pd.read_csv("Assets/reviews_500_750.csv",index_col = 0, dtype={'author_id':'str'})
-    df_reviews_4 = pd.read_csv("Assets/reviews_750_1000.csv",index_col = 0, dtype={'author_id':'str'})
-    df_reviews_5 = pd.read_csv("Assets/reviews_1000_1500.csv",index_col = 0, dtype={'author_id':'str'})
-    df_reviews_6 = pd.read_csv("Assets/reviews_1500_end.csv",index_col = 0, dtype={'author_id':'str'})
+
+    # Define multiple Google Drive shareable links
+    drive_links = [
+        "https://drive.google.com/file/d/1cOkvW1_h50gPX9Mv_lU-xUwm4EVn4-WS/view?usp=drive_link", 
+        "https://drive.google.com/file/d/1MBCvFm3z7NAizsivGMz7jqxsJwuFPJMs/view?usp=drive_link",
+        "https://drive.google.com/file/d/1wPLiHPi2v2ZNfUEDz9A2t2RD8nuDM1dT/view?usp=drive_link",
+        "https://drive.google.com/file/d/1F9Wvn8_ZucnC5_qH4trdYVS-A4CZkAfR/view?usp=drive_link",
+        "https://drive.google.com/file/d/1AZReTKzcu9xNEuZXXX6olMRkmG75fO8Q/view?usp=drive_link",
+        "https://drive.google.com/file/d/1NFKFfirZet7R70lRFPjzmNZJagcDZo3j/view?usp=drive_link",
+        "https://drive.google.com/file/d/1H7uwZaK2vjxw385Kkw15RPb96Dm7Za4-/view?usp=drive_link"
+        ]
+    # Define corresponding output file names
+    output_files = [
+        "product_info.csv", 
+        "reviews_0_250.csv",
+        "reviews_250_500.csv", 
+        "reviews_500_750.csv",
+        "reviews_750_1000.csv",
+        "reviews_1000_1500.csv",
+        "reviews_1500_end.csv"
+        ]
+    # Download each dataset
+    for link, file in zip(drive_links, output_files):
+        gdown.download(link, file, quiet=False)
+
+    df_product_info = pd.read_csv("product_info.csv")
+    df_reviews_1 = pd.read_csv("reviews_0_250.csv",index_col = 0, dtype={'author_id':'str'})
+    df_reviews_2 = pd.read_csv("reviews_250_500.csv",index_col = 0, dtype={'author_id':'str'})
+    df_reviews_3 = pd.read_csv("reviews_500_750.csv",index_col = 0, dtype={'author_id':'str'})
+    df_reviews_4 = pd.read_csv("reviews_750_1000.csv",index_col = 0, dtype={'author_id':'str'})
+    df_reviews_5 = pd.read_csv("reviews_1000_1500.csv",index_col = 0, dtype={'author_id':'str'})
+    df_reviews_6 = pd.read_csv("reviews_1500_end.csv",index_col = 0, dtype={'author_id':'str'})
 
     # Merge df reviews
     df_reviews = pd.concat([df_reviews_1,df_reviews_2,df_reviews_3,df_reviews_4,df_reviews_5,df_reviews_6],axis=0)
