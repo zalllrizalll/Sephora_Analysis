@@ -18,7 +18,7 @@ with st.sidebar:
         icons=['eye', 'emoji-smile', 'file-earmark-text', 'question-circle', 'info-circle'], menu_icon=" ", default_index=0)
 
 # Load Dataset
-df, x, y = load_dataset()
+df, x, y = load_dataset() # type: ignore
 df=preprocessing_data(df)
 
 

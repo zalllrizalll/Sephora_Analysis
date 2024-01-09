@@ -29,63 +29,36 @@ import gdown
 
 
 @st.cache_data
-def download_files(drive_links, output_files):
-    for link, file in zip(drive_links, output_files):
-        gdown.download(link, file, quiet=False)
-
 def load_dataset():
-    # Define multiple Google Drive shareable links and corresponding output file names
-    drive_links = [
-        "https://drive.google.com/file/d/1cOkvW1_h50gPX9Mv_lU-xUwm4EVn4-WS/view?usp=drive_link", 
-        "https://drive.google.com/file/d/1MBCvFm3z7NAizsivGMz7jqxsJwuFPJMs/view?usp=drive_link",
-        "https://drive.google.com/file/d/1wPLiHPi2v2ZNfUEDz9A2t2RD8nuDM1dT/view?usp=drive_link",
-        "https://drive.google.com/file/d/1F9Wvn8_ZucnC5_qH4trdYVS-A4CZkAfR/view?usp=drive_link",
-        "https://drive.google.com/file/d/1AZReTKzcu9xNEuZXXX6olMRkmG75fO8Q/view?usp=drive_link",
-        "https://drive.google.com/file/d/1NFKFfirZet7R70lRFPjzmNZJagcDZo3j/view?usp=drive_link",
-        "https://drive.google.com/file/d/1H7uwZaK2vjxw385Kkw15RPb96Dm7Za4-/view?usp=drive_link"
-    ]
-    
-    output_files = [
-        "product_info.csv", 
-        "reviews_0_250.csv",
-        "reviews_250_500.csv", 
-        "reviews_500_750.csv",
-        "reviews_750_1000.csv",
-        "reviews_1000_1500.csv",
-        "reviews_1500_end.csv"
-    ]
-
-    # Download each dataset
-    download_files(drive_links, output_files)
-
-    # Read datasets into DataFrames
-    dfs = [pd.read_csv(file, index_col=0, dtype={'author_id': 'str'}) for file in output_files]
+    df_product_info = pd.read_csv("Assets/product_info.csv")
+    df_reviews_1 = pd.read_csv("Assets/reviews_0_250.csv",index_col = 0, dtype={'author_id':'str'})
+    df_reviews_2 = pd.read_csv("Assets/reviews_250_500.csv",index_col = 0, dtype={'author_id':'str'})
+    df_reviews_3 = pd.read_csv("Assets/reviews_500_750.csv",index_col = 0, dtype={'author_id':'str'})
+    df_reviews_4 = pd.read_csv("Assets/reviews_750_1000.csv",index_col = 0, dtype={'author_id':'str'})
+    df_reviews_5 = pd.read_csv("Assets/reviews_1000_1500.csv",index_col = 0, dtype={'author_id':'str'})
+    df_reviews_6 = pd.read_csv("Assets/reviews_1500_end.csv",index_col = 0, dtype={'author_id':'str'})
 
     # Merge df reviews
-    df_reviews = pd.concat(dfs, axis=0)
+    df_reviews = pd.concat([df_reviews_1,df_reviews_2,df_reviews_3,df_reviews_4,df_reviews_5,df_reviews_6],axis=0)
 
-    # Define df_product_info separately
-    df_product_info = pd.read_csv(output_files[0], index_col=0, dtype={'author_id': 'str'})
+    # Lets check df_product_info which columns that similar with df_reviews
+    cols_to_use = df_product_info.columns.difference(df_reviews.columns) # Identifikasi column-column yang terdapat di df_product_info tetapi tidak ada di df_reviews
+    cols_to_use = list(cols_to_use) # Mengubah objek index ke dalam bentuk list
+    cols_to_use.append('product_id') # Menambahkan column product_id pada cols_to_use
 
-    if df_product_info is not None:
-        # Identify columns in df_product_info that are not in df_reviews
-        cols_to_use = df_product_info.columns.difference(df_reviews.columns).tolist()
-        cols_to_use.append('product_id')
+    # Menggabungkan df_reviews dan df_product_info[cols_to_use] berdasarkan kolom 'product_id'
+    df = pd.merge(df_reviews, df_product_info[cols_to_use], how='outer', on=['product_id', 'product_id'])
 
-        # Merge df_reviews and df_product_info[cols_to_use] based on 'product_id'
-        df = pd.merge(df_reviews, df_product_info[cols_to_use], how='outer', on='product_id')
+    # Rename the columns
+    df.rename(columns={'review_text':'text', 'is_recommended':'label'},  inplace=True)
 
-        # Rename the columns
-        df.rename(columns={'review_text': 'text', 'is_recommended': 'label'}, inplace=True)
+    # Get value text
+    x = df.text.values
 
-        # Get values for text and label
-        x = df.text.values
-        y = df.label.values
+    # Get value label
+    y = df.label.values
 
-        return df, x, y
-    else:
-        print("Error: df_product_info is None.")
-        return None, None, None
+    return df, x, y
 
 @st.cache_data
 def hundformatter(x, pos):
