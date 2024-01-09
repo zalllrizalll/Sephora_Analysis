@@ -4,6 +4,8 @@ from sephora_functions import load_dataset,preprocessing_data
 from Tabs import about, help, overview, prediction, sentiment_analysis
 from transformers import BertTokenizer,BertForSequenceClassification
 
+st.set_option('server.enableCORS', False)
+
 Pages = {
     "Overview" : overview,
     "Sentiment Analysis" : sentiment_analysis,
