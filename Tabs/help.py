@@ -33,5 +33,3 @@ def app():
     
     with st.expander("Bagaimana Sephora berkontribusi terhadap keberlanjutan dan tanggung jawab sosial perusahaan di industri kecantikan?"):
         st.write("Sephora berkomitmen pada keberlanjutan dan tanggung jawab sosial, termasuk program peningkatan keberagaman, dan berbagai inisiatif lingkungan.")
-    
-    
